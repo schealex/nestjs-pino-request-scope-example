@@ -1,16 +1,19 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from 'nestjs-pino';
-import { LoggerContextMiddleware } from './logger-context.middleware';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggerContextInterceptor } from './logger-context.interceptor';
 
 @Module({
   imports: [LoggerModule.forRoot()],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggerContextInterceptor,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerContextMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}
